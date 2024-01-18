@@ -27,10 +27,15 @@ Flash: [===       ]  27.2% (used 856037 bytes from 3145728 bytes)
 ## 🖼️ User Interface
 
 **Login Page**
+
 ![Login](/images/login.png)
+
 **Password Page**
+
 ![User interface](/images/password.png)
+
 **Settings Page**
+
 ![Backend](/images/backend.png)
 
 ## 📝 All original repo documentation
