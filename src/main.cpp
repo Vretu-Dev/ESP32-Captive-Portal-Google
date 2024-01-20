@@ -21,11 +21,6 @@ const IPAddress subnetMask(255, 255, 255, 0);
 
 const String localIPURL = "http://4.3.2.1";
 
-const char index_html[] PROGMEM = "/data/index.html";
-const char login_html[] PROGMEM = "/data/login.html";
-const char manage_html[] PROGMEM = "/data/manage.html";
-const char blank_html[] PROGMEM = "/data/blank.html";
-
 DNSServer dnsServer;
 AsyncWebServer server(80);
 
