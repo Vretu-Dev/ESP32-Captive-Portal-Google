@@ -1,0 +1,250 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --textColorList: rgb(60, 64, 67);
+    --textColorDark: rgb(32, 33, 36);
+    --textColorBright: rgb(95, 99, 104);
+    --blueColor: rgb(26, 115, 232);
+    --GoogleSans: 'Google Sans', arial, sans-serif;
+    --Roboto: "Roboto", arial, sans-serif;
+}
+
+html, body{
+    height: 100dvh;
+}
+
+body {
+    font-size: 14px;
+    font-family: var(--Roboto);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+h1 {
+    font-family: var(--GoogleSans);
+    ;
+    color: var(--textColorDark);
+    font-size: 24px;
+}
+
+p {
+    color: var(--textColorBright);
+}
+
+a{
+    text-decoration: none;
+}
+
+main a {
+    color: var(--blueColor);
+    font-weight: 500;
+    letter-spacing: 0.25px;
+}
+
+main {
+    padding: 24px 24px 36px;
+}
+
+/* LOGO */
+
+.logo {
+    text-align: center;
+    height: 24px;
+}
+
+/* HEADER */
+
+.heading {
+    text-align: center;
+    line-height: 32px;
+}
+
+.headingText {
+    padding-top: 16px;
+    font-weight: 400;
+}
+
+.headingSubtext {
+    padding-top: 7px;
+    padding-bottom: 1px;
+    font-size: 16px;
+    color: var(--textColorDark);
+    letter-spacing: 0.1px;
+    height: 32px;
+}
+
+/* FORM */
+
+form {
+    padding-top: 24px;
+}
+
+.forgotEmailBox {
+    padding-top: 9px;
+    padding-bottom: 3px;
+}
+
+#forgotEmail {
+    margin-left: -3px;
+    padding: 2px 3px;
+    line-height: 20px;
+}
+
+.aboutGuestMode {
+    margin-top: 34px;
+    padding-top: 9px;
+    padding-bottom: 3px;
+    line-height: 20px;
+}
+
+.aboutGuestMode a {
+    padding: 0 3px;
+    margin-left: -3px;
+    letter-spacing: 0.25px;
+    line-height: 20px;
+}
+
+.buttons {
+    margin-top: 32px;
+    padding-bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.buttons input {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-family: var(--GoogleSans);
+    font-weight: 500;
+    height: 36px;
+    margin: 6px 0;
+}
+
+#createAccountButton {
+    color: var(--blueColor);
+    padding: 0 8px;
+    margin-left: -8px;
+    cursor: pointer;
+}
+
+#nextButton {
+    color: white;
+    background-color: var(--blueColor);
+    padding: 0 24px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.identifierBox {
+    padding-top: 8px;
+    color: rgb(95, 99, 104);
+    margin-bottom: 16px;
+}
+
+#emailID {
+    border-radius: 4px;
+    border: 1px solid rgb(218, 220, 224);
+    width: 100%;
+    font-family: var(--Roboto);
+    padding: 13px 15px;
+    height: 54px;
+    font-size: 16px;
+    outline: none;
+    transition-delay: 0s, 0s;
+    transition-duration: 0.15s, 0.15s;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    cursor: text;
+    
+    &:focus {
+        ~ .emailLabel {
+            transform: matrix(0.75, 0, 0, 0.75, -15, -26);
+            color: var(--blueColor);
+        }
+        ~ .blueEmailBorder{
+            opacity: 1;
+            z-index: 0;
+        }
+    }
+
+    &:not(:placeholder-shown){
+        ~ .emailLabel {
+            transform: matrix(0.75, 0, 0, 0.75, -15, -26);
+        }
+    }
+}
+
+.emailLabel, .blueEmailBorder{
+    transition-delay: 0s, 0s;
+    transition-duration: 0.15s, 0.15s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.emailLabel {
+    font-size: 16px;
+    color: rgb(95, 99, 104);
+    top: 18px;
+    left: 8px;
+    position: absolute;
+    padding: 0 8px;
+    user-select: none;
+    background-color: white;
+    transition-property: color, transform;
+    cursor: text;
+}
+
+.identifierSubBox{
+    position: relative;
+}
+
+.blueEmailBorder{
+    border: 2px solid var(--blueColor);
+    height: 54px;
+    border-radius: 4px;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    opacity: 0;
+    transition-property: all;
+    z-index: -1;
+    cursor: text;
+}
+
+#languageID{
+    color: var(--textColorList);
+    font-size: 12px;
+    letter-spacing: 0.1125px;
+    line-height: 28px;
+    border: none;
+    margin-left: 16px;
+    font-family: var(--Roboto);
+}
+
+footer{
+    font-size: 12px;
+}
+
+footer ul{
+    padding-left: 8px;
+    display: flex;
+    list-style: none;
+}
+
+footer li{
+    font-size: 12px;
+    padding: 16px;
+}
+
+footer a{
+    color: var(--textColorList)
+}
