@@ -66,9 +66,14 @@ void handleResetDevice(AsyncWebServerRequest *request) {
   ESP.restart();
 }
 
+//--------------------ZMIENIANIE SSID-----------------------//
+int h2int(char c);
+String urldecode(String input);
+
 void handleSsidChange(AsyncWebServerRequest *request) {
   if (request->hasParam("ssid", true)) {
-    String newSsid = request->getParam("ssid", true)->value();
+    String newSsidEncoded = request->getParam("ssid", true)->value();
+    String newSsid = urldecode(newSsidEncoded);
     ssid = newSsid;
 
     // Zapisz nowe SSID do pamięci EEPROM
@@ -84,6 +89,34 @@ void handleSsidChange(AsyncWebServerRequest *request) {
     request->send(400, "text/html", "Bad Request");
   }
 }
+
+// DEKODOWANIE SSID
+String urldecode(String input) {
+  String output = "";
+  char c;
+  for (int i = 0; i < input.length(); i++) {
+    c = input.charAt(i);
+    if (c == '+') c = ' ';
+    if (c == '%') {
+      char c1 = input.charAt(++i);
+      char c2 = input.charAt(++i);
+      c = (h2int(c1) << 4) | h2int(c2);
+    }
+    output += c;
+  }
+  return output;
+}
+// DEKODOWANIE SSID
+int h2int(char c) {
+  if (c >= '0' && c <='9')
+    return (c - '0');
+  if (c >= 'a' && c <='f')
+    return (c - 'a' + 10);
+  if (c >= 'A' && c <='F')
+    return (c - 'A' + 10);
+  return 0;
+}
+//----------------------------------------------------//
 
 void handleRestartDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Restarting device...");
@@ -125,16 +158,16 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->send(404); });
 
 	// LOADING FONTS AND STYLES
-    server.on("/css/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/css/style.css");
+    server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style.css");
         AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
         response->addHeader("Cache-Control", "public,max-age=31536000");
         request->send(response);
         Serial.println("Served CSS Style Sheet");
     });
 
-	server.on("/css/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/css/style2.css");
+	server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style2.css");
         AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
         response->addHeader("Cache-Control", "public,max-age=31536000");
         request->send(response);
