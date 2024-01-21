@@ -8,3 +8,8 @@
     font-weight: 400;
     src: url('medium.ttf');
 }
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 400;
+    src: url('roboto.ttf');
+}

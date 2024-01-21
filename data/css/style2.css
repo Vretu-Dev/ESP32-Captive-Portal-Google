@@ -84,31 +84,6 @@ form {
     padding-top: 24px;
 }
 
-.forgotEmailBox {
-    padding-top: 9px;
-    padding-bottom: 3px;
-}
-
-#forgotEmail {
-    margin-left: -3px;
-    padding: 2px 3px;
-    line-height: 20px;
-}
-
-.aboutGuestMode {
-    margin-top: 34px;
-    padding-top: 9px;
-    padding-bottom: 3px;
-    line-height: 20px;
-}
-
-.aboutGuestMode a {
-    padding: 0 3px;
-    margin-left: -3px;
-    letter-spacing: 0.25px;
-    line-height: 20px;
-}
-
 .buttons {
     margin-top: 32px;
     padding-bottom: 20px;
@@ -143,7 +118,7 @@ form {
 }
 
 .identifierBox {
-    padding-top: 8px;
+    padding-top: 50px;
     color: rgb(95, 99, 104);
     margin-bottom: 16px;
 }
