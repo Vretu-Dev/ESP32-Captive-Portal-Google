@@ -36,7 +36,7 @@ Flash: [===       ]  27.2% (used 856037 bytes from 3145728 bytes)
 
 **Settings Page**
 
-![Backend](/images/backend.png)
+![Backend (4.3.2.1/manage) Login: admin Password: securepassword](/images/backend.png)
 
 ## 📝 All original repo documentation
 
