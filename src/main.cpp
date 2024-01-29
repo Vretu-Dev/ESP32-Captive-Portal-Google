@@ -37,14 +37,26 @@ void checkCredentials(AsyncWebServerRequest *request) {
   }
 }
 
-String loadFile(String path) {
-  File file = SPIFFS.open(path, "r");
+String loadFile(String path, bool asBinary = false) {
+  File file = SPIFFS.open(path, asBinary ? "rb" : "r");
   if (!file) {
     Serial.println("Failed to open file: " + path);
     return "";
   }
 
-  String content = file.readString();
+  String content;
+  if (asBinary) {
+    size_t fileSize = file.size();
+    uint8_t *buffer = (uint8_t*)malloc(fileSize);
+    if (buffer) {
+      file.read(buffer, fileSize);
+      content = String((char*)buffer, fileSize);
+      free(buffer);
+    }
+  } else {
+    content = file.readString();
+  }
+
   file.close();
   return content;
 }
@@ -157,54 +169,6 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
     server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->send(404); });
 
-	// LOADING FONTS AND STYLES
-    server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/style.css");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-        response->addHeader("Cache-Control", "public,max-age=31536000");
-        request->send(response);
-        Serial.println("Served CSS Style Sheet");
-    });
-
-	server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/style2.css");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-        response->addHeader("Cache-Control", "public,max-age=31536000");
-        request->send(response);
-        Serial.println("Served CSS Style Sheet");
-    });
-
-	// server.on("/css/googleSans.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/googleSans.css");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served CSS Style Sheet");
-  //   });
-	// THIS FONTS NOT WORKING!!! IDK WHY
-	// server.on("/css/medium.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //   String content = loadFile("/css/medium.ttf");
-  //   AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //   response->addHeader("Cache-Control", "public,max-age=31536000");
-  //   request->send(response);
-  //   Serial.println("Served Font File");
-	// });
-	
-	// server.on("/css/regular.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/regular.ttf");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served TTF Font");
-  //   });
-
-	// server.on("/css/roboto.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-  //       String content = loadFile("/css/roboto.ttf");
-  //       AsyncWebServerResponse *response = request->beginResponse(200, "application/font-ttf", content);
-  //       response->addHeader("Cache-Control", "public,max-age=31536000");
-  //       request->send(response);
-  //       Serial.println("Served TTF Font");
-  //   });
 
 	//LOADING HTML PAGES
   server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
@@ -215,6 +179,63 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     Serial.println("Served Basic HTML Page");
   	});
 
+    server.on("/login", HTTP_ANY, [](AsyncWebServerRequest *request) {
+    String content = loadFile("/login.html");
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
+    response->addHeader("Cache-Control", "public,max-age=31536000");
+    request->send(response);
+    Serial.println("Served login HTML Page");
+    });
+
+    // LOADING STYLES
+    server.on("/googleSans.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/googleSans.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
+
+    server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
+
+	  server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/style2.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
+
+    server.on("/medium.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
+      String content = loadFile("/medium.ttf", true);
+      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
+      response->addHeader("Cache-Control", "public,max-age=31536000");
+      request->send(response);
+      Serial.println("Served Font File");
+    });
+
+    server.on("/regular.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
+      String content = loadFile("/regular.ttf", true);
+      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
+      response->addHeader("Cache-Control", "public,max-age=31536000");
+      request->send(response);
+      Serial.println("Served Font File");
+    });
+
+    server.on("/roboto.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
+      String content = loadFile("/roboto.ttf", true);
+      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
+      response->addHeader("Cache-Control", "public,max-age=31536000");
+      request->send(response);
+      Serial.println("Served Font File");
+    });
+
   server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
     checkCredentials(request);
     String dynamicManageHTML = loadFile("/manage.html");
@@ -223,14 +244,6 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     response->addHeader("Cache-Control", "public,max-age=31536000");
     request->send(response);
     Serial.println("Served Manage HTML Page");
-  });
-
-  server.on("/login", HTTP_ANY, [](AsyncWebServerRequest *request) {
-    String content = loadFile("/login.html");
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
-    response->addHeader("Cache-Control", "public,max-age=31536000");
-    request->send(response);
-    Serial.println("Served login HTML Page");
   });
 
   server.on("/blank", HTTP_ANY, [](AsyncWebServerRequest *request) {
