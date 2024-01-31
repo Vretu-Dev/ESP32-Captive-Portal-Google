@@ -2,42 +2,59 @@
 
 [![Hippocratic License HL3-CL-EXTR-FFD-MEDIA-MIL-MY-SV-TAL](https://img.shields.io/static/v1?label=Hippocratic%20License&message=HL3-CL-EXTR-FFD-MEDIA-MIL-MY-SV-TAL&labelColor=5e2751&color=bc8c3d)](https://firstdonoharm.dev/version/3/0/cl-extr-ffd-media-mil-my-sv-tal.html)
 
-A ESP32 Captive Portal written in Arduino C++ (think airport Wi-Fi sign-in page) demo that works on all devices[^1].
+## 📢 About this project
+A ESP32 Captive Portal written in Arduino C++ (think airport Wi-Fi sign-in page) demo that works on all devices.
 
 This code is an example of a captive portal for the ESP32, using the AsyncTCP library. The code sets up a soft access point with the given SSID and no password and configures a DNS server to redirect all traffic to the captive portal web server running on the ESP32. The captive portal serves an HTML page with a message that all requests will be redirected to this page.
 
 The code also includes some workarounds and documents limitations for different devices and browsers, such as a workaround for Windows 11 captive portal and limitations on the Safari (iOS) browser.
 
-## 🏁 Get Started
+Original Repository: <a href="https://github.com/CDFER/Captive-Portal-ESP32"><b> CDFER/Captive-Portal-ESP32 </b></a>
 
-Download the firmware from the releases page and select the serial port from the dropdown menu. Press the "Flash ESP" button to flash the ESP32.
+## 🖼️ Screenshots
 
-If you are running Windows, you will most likely need a driver from [here](https://www.wemos.cc/en/latest/ch340_driver.html) before your computer will show the ESP32 com port in the drop-down menu in ESPhome Flasher.
+<table>
+  <tr>
+    <th>4.3.2.1/index</th>
+    <th>4.3.2.1/login</th> 
+    <th>4.3.2.1/manage</th>
+  </tr>
+  <tr>
+    <td>This is the main page. Here the user will write his email and send it.</td>
+    <td>This is the email page. The user will be redirected here after posting the password.</td>
+    <td>This is the settings and password page. Credentials for this page:<br><b>Login: admin <br>Password: securepassword</b></td>
+  <tr>
+    <td><img width="100%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/email.png" title="index"></td>
+    <td><img width="100%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/password.png" title="password"></td>
+    <td><img width="100%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/manage.png" title="manage"></td>
+  </tr>
+</table>
 
-## ⚙️ Features
+## ⚙️ RAM and flash memory usage
 
 ```
-RAM:   [=         ]  13.8% (used 45188 bytes from 327680 bytes)
-Flash: [===       ]  27.2% (used 856037 bytes from 3145728 bytes)
+RAM:   [=         ]  13.8% (used 45236 bytes from 327680 bytes)
+Flash: [===       ]  33.9% (used 1067117 bytes from 3145728 bytes)
 ```
 
-- About 0.1s reload time using modern browsers and systems
-- Lots of comments that explain how it all works
+## 👽 Installation (using PlatformIO)
 
-## 🖼️ User Interface
+1. Download and unpack the project<a href="https://github.com/Vretu-Dev/ESP32-Captive-Portal-Google/archive/refs/heads/main.zip"><b> ESP32-Captive-Portal-Google </b></a>
 
-**Login Page**
+2. Download and install Visual Studio Code by Microsoft from [here](https://code.visualstudio.com/download)
 
-![Login](/images/login.png)
+3. Open Visual Studio Code and go to the Extensions manager (the icon with the stacked blocks in the left bar)
 
-**Password Page**
+4. Search for "platformio" and install the PlatformIO extension.
 
-![User interface](/images/password.png)
+5. In VS Code, go to File -> Open Folder... and open the folder "ESP32-Captive-Portal-Google-main" (the one that contains platformio.ini, NOT the src folder)
 
-**Settings Page (4.3.2.1/manage) Login: admin Password: securepassword**
+6. Upload firmware to the ESP32 using the right arrow button in the bottom left corner of VS Code (it takes a while for the first compile)
+<img width="50%" height="50%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/experimental/images/firmware.png">
 
-![Backend](/images/backend.png)
+7. Click PlatformIO extension (the icon with the Alien in the left bar) to upload spiffs file system
 
-## 📝 All original repo documentation
+8. Go to mydebug -> Platform. Click Build Filesystem Image then Upload Filesystem Image
+<img width="30%" height="30%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/experimental/images/filesystem.png">
 
-[Repository CDFER/Captive-Portal-ESP32](https://github.com/CDFER/Captive-Portal-ESP32)
+9. Your ESP32 is ready!
