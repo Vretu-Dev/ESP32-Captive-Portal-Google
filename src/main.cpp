@@ -6,6 +6,10 @@
 #include <ESPAsyncWebServer.h>
 #include <esp_wifi.h>
 #include <EEPROM.h>
+#include "roboto-regular.h"
+#include "roboto-medium.h"
+#include "google-regular.h"
+#include "google-medium.h"
 
 #define EEPROM_SSID_ADDRESS 0
 
@@ -188,8 +192,8 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     });
 
     // LOADING STYLES
-    server.on("/googleSans.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/googleSans.css");
+    server.on("/fonts.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/fonts.css");
         AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
         response->addHeader("Cache-Control", "public,max-age=31536000");
         request->send(response);
@@ -212,29 +216,26 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
         Serial.println("Served CSS Style Sheet");
     });
 
-    server.on("/medium.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-      String content = loadFile("/medium.ttf", true);
-      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
-      response->addHeader("Cache-Control", "public,max-age=31536000");
-      request->send(response);
-      Serial.println("Served Font File");
-    });
+    // Loading Fonts
 
-    server.on("/regular.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-      String content = loadFile("/regular.ttf", true);
-      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
-      response->addHeader("Cache-Control", "public,max-age=31536000");
-      request->send(response);
-      Serial.println("Served Font File");
-    });
+    static const char* CONTENT_TYPE_WOFF2 {"application/x-font-woff2"};
 
-    server.on("/roboto.ttf", HTTP_ANY, [](AsyncWebServerRequest *request) {
-      String content = loadFile("/roboto.ttf", true);
-      AsyncWebServerResponse *response = request->beginResponse(200, "application/x-font-ttf", content);
-      response->addHeader("Cache-Control", "public,max-age=31536000");
-      request->send(response);
-      Serial.println("Served Font File");
-    });
+    server.on("/roboto-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_regular_woff2, roboto_regular_woff2_len);
+          request->send(response);
+      });
+    server.on("/roboto-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_medium_woff2, roboto_medium_woff2_len);
+          request->send(response);
+      });
+    server.on("/google-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_regular_woff2, google_regular_woff2_len);
+          request->send(response);
+      });
+    server.on("/google-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_medium_woff2, google_medium_woff2_len);
+          request->send(response);
+      });
 
   server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
     checkCredentials(request);

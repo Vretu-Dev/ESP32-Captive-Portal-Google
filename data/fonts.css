@@ -1,0 +1,20 @@
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 500;
+    src: url('google-regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Google Sans';
+    font-weight: 400;
+    src: url('google-medium.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 400;
+    src: url('roboto-regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 500;
+    src: url('roboto-medium.woff2') format('woff2');
+}
