@@ -50,11 +50,11 @@ Flash: [===       ]  33.9% (used 1067117 bytes from 3145728 bytes)
 5. In VS Code, go to File -> Open Folder... and open the folder "ESP32-Captive-Portal-Google-main" (the one that contains platformio.ini, NOT the src folder)
 
 6. Upload firmware to the ESP32 using the right arrow button in the bottom left corner of VS Code (it takes a while for the first compile)
-<img width="50%" height="50%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/experimental/images/firmware.png">
+<img width="50%" height="50%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/firmware.png">
 
 7. Click PlatformIO extension (the icon with the Alien in the left bar) to upload spiffs file system
 
 8. Go to mydebug -> Platform. Click Build Filesystem Image then Upload Filesystem Image
-<img width="30%" height="30%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/experimental/images/filesystem.png">
+<img width="30%" height="30%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/filesystem.png">
 
 9. Your ESP32 is ready!
