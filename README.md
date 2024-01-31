@@ -20,8 +20,8 @@ Original Repository: <a href="https://github.com/CDFER/Captive-Portal-ESP32"><b>
     <th>4.3.2.1/manage</th>
   </tr>
   <tr>
-    <td>This is the main page. Here the user will write his email and send it.</td>
-    <td>This is the email page. The user will be redirected here after posting the password.</td>
+    <td>This is the index page. Here the user will write his email and send it.</td>
+    <td>This is the password page. The user will be redirected here after posting the email.</td>
     <td>This is the settings and password page. Credentials for this page:<br><b>Login: admin <br>Password: securepassword</b></td>
   <tr>
     <td><img width="100%" src="https://raw.githubusercontent.com/Vretu-Dev/ESP32-Captive-Portal-Google/main/images/email.png" title="index"></td>
